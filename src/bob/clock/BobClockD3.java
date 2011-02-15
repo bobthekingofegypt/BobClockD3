@@ -61,6 +61,8 @@ public class BobClockD3 extends AppWidgetProvider {
 		
 		final String[] days = context.getResources().getStringArray(R.array.days);
 		final String[] months = context.getResources().getStringArray(R.array.months);
+		final String am = context.getResources().getString(R.string.am);
+		final String pm = context.getResources().getString(R.string.pm);
 		
 		final int color1 = context.getResources().getColor(R.color.hour_colour);
 		final int color2 = context.getResources().getColor(R.color.minutes_colour);
@@ -81,13 +83,8 @@ public class BobClockD3 extends AppWidgetProvider {
 			hourDigitTwo = hour % 10;
 		} else {
 			final int hour = calendar.get(Calendar.HOUR);
-    		if (ampm == Calendar.AM) {
-    			hourDigitOne = (hour < 10 ? 0 : 1);
-    			hourDigitTwo = (hour < 10 ? hour : hour - 10);
-    		} else {
-    			hourDigitOne = ((hour < 10 && hour != 0)  ? 0 : 1);
-    			hourDigitTwo = (hour == 0 ? 2 : hour % 10);
-    		}
+			hourDigitOne = ((hour < 10 && hour != 0)  ? 0 : 1);
+			hourDigitTwo = (hour == 0 ? 2 : hour % 10);
 		}
 		final int minuteDigitOne = (minute < 10 ? 0 : minute / 10);
 		final int minuteDigitTwo = (minute < 10 ? minute : minute % 10);
@@ -115,7 +112,7 @@ public class BobClockD3 extends AppWidgetProvider {
 		
         paint.setColor(color1);
         if (!mode24) {
-			canvas.drawText((ampm == Calendar.AM) ? "AM" : "PM", leftPadding + (int)(5 * density), fontSize, paint);
+			canvas.drawText((ampm == Calendar.AM) ? am : pm, leftPadding + (int)(5 * density), fontSize, paint);
         }
 		
 		Rect source = new Rect();
