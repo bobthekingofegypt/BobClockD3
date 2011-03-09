@@ -5,5 +5,3 @@
     android:initialLayout="@layout/bob_clock_d3"
     android:configure="bob.clock.BobClockD3Configure">
 </appwidget-provider>
-
-

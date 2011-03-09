@@ -1,18 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent">
-    <LinearLayout  android:orientation="vertical"
-                       android:layout_width="fill_parent"
-                       android:layout_height="fill_parent">    
-        <Button android:id="@+id/confirm_button_24"
-                android:layout_width="fill_parent"
-                android:layout_height="60dip" 
-                android:text="24 Hour mode" />
-                
-        <Button android:id="@+id/confirm_button_12"
-                android:layout_width="fill_parent"
-                android:layout_height="60dip" 
-                android:text="12 Hour mode" />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:orientation="vertical">
+    
+    <ListView android:id="@android:id/list"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent" 
+              android:layout_weight="1" />
+              
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:layout_width="fill_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal">
+        <Button android:id="@+id/configure_cancel_button"
+                android:text="Cancel"
+                android:textColor="#fff"
+                android:textStyle="bold"
+                android:layout_weight="0.5"
+                android:layout_width="0dip"
+                android:layout_height="50dip" 
+                android:layout_margin="10dip"
+                android:paddingTop="5dip"
+                android:paddingBottom="5dip"
+                android:background="@drawable/cancel_selector" />
+        <Button android:id="@+id/configure_confirm_button"
+                android:text="Confirm"
+                android:textColor="#fff"
+                android:textStyle="bold"
+                android:layout_weight="0.5"
+                android:layout_width="0dip"
+                android:layout_height="50dip" 
+                android:layout_margin="10dip"
+                android:paddingTop="5dip"
+                android:paddingBottom="5dip"
+                android:background="@drawable/confirm_selector" />
     </LinearLayout>
-</ScrollView>
+</LinearLayout>

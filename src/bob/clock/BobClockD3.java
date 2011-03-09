@@ -1,13 +1,17 @@
 package bob.clock;
 
+import java.io.FileInputStream;
 import java.util.Calendar;
 
+import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -15,17 +19,13 @@ import android.graphics.Paint;
 import android.graphics.Paint.Align;
 import android.graphics.Rect;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 public class BobClockD3 extends AppWidgetProvider {
 
 	@Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-		RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.bob_clock_d3);
-		remoteViews.setImageViewBitmap(R.id.clock_view, buildClock(context));
-		
-		ComponentName widget = new ComponentName(context, BobClockD3.class);
-		appWidgetManager.updateAppWidget(widget, remoteViews);
 		context.startService(new Intent(context, BobClockD3Service.class));
     } 
 	
@@ -46,26 +46,88 @@ public class BobClockD3 extends AppWidgetProvider {
 	
 	static void updateAppWidget(final Context context, 
 								final AppWidgetManager appWidgetManager) {
+		final SharedPreferences preferences = context.getSharedPreferences(BobClockD3Configure.PREFS_KEY, 0);
 		RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.bob_clock_d3);
-		remoteViews.setImageViewBitmap(R.id.clock_view, buildClock(context));
+		Bitmap builtClock = buildClock(preferences,context);
+		if (builtClock == null) {
+			Log.e("BobClockD3", "Failed to create clock bitmap");
+			return;
+		}
+		remoteViews.setImageViewBitmap(R.id.clock_view, builtClock);
+		boolean launchClock = preferences.getBoolean("launchclock", false);
+		if (launchClock) {
+			remoteViews.setOnClickPendingIntent(R.id.clock_view, createPendingIntent(context));
+		}
 		
 		ComponentName widget = new ComponentName(context, BobClockD3.class);
+		
 		appWidgetManager.updateAppWidget(widget, remoteViews);
 	}
 	
-	private static Bitmap buildClock(final Context context) {
+	/*
+	 * Code from http://stackoverflow.com/questions/3590955/intent-to-launch-the-clock-application-on-android
+	 * by frusso
+	 */
+	static private PendingIntent createPendingIntent(final Context context) {
+		PackageManager packageManager = context.getPackageManager();
+	    Intent alarmClockIntent = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
+
+	    String clockImpls[][] = {
+	            {"HTC Alarm Clock", "com.htc.android.worldclock", "com.htc.android.worldclock.WorldClockTabControl" },
+	            {"Standar Alarm Clock", "com.android.deskclock", "com.android.deskclock.AlarmClock"},
+	            {"Froyo Nexus Alarm Clock", "com.google.android.deskclock", "com.android.deskclock.DeskClock"},
+	            {"Moto Blur Alarm Clock", "com.motorola.blur.alarmclock",  "com.motorola.blur.alarmclock.AlarmClock"}
+	    };
+
+	    boolean foundClockImpl = false;
+
+	    for(int i=0; i<clockImpls.length; i++) {
+	        String packageName = clockImpls[i][1];
+	        String className = clockImpls[i][2];
+	        try {
+	            ComponentName cn = new ComponentName(packageName, className);
+	            packageManager.getActivityInfo(cn, PackageManager.GET_META_DATA);
+	            alarmClockIntent.setComponent(cn);
+	            foundClockImpl = true;
+	        } catch (NameNotFoundException e) {
+	        	//no-op
+	        }
+	    }
+
+	    if (foundClockImpl) {
+	        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, alarmClockIntent, 0);
+	        return pendingIntent;
+	    }
+
+	    return null;
+	}
+	
+	private static Bitmap buildClock(final SharedPreferences preferences, final Context context) {
 		final DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
 		final float density = displayMetrics.density;
-		final SharedPreferences preferences = context.getSharedPreferences(BobClockD3Configure.PREFS_KEY, 0);
-		final boolean mode24 = preferences.getBoolean(BobClockD3Configure.TWENTY_FOUR_HOUR_MODE, false);
+		
+		final boolean mode24 = preferences.getBoolean("mode24", false);
+		final boolean lowercase = preferences.getBoolean("lowercase", false);
 		
 		final String[] days = context.getResources().getStringArray(R.array.days);
 		final String[] months = context.getResources().getStringArray(R.array.months);
-		final String am = context.getResources().getString(R.string.am);
-		final String pm = context.getResources().getString(R.string.pm);
+		String am = context.getResources().getString(R.string.am);
+		String pm = context.getResources().getString(R.string.pm);
 		
-		final int color1 = context.getResources().getColor(R.color.hour_colour);
-		final int color2 = context.getResources().getColor(R.color.minutes_colour);
+		if (lowercase) {
+			am = am.toLowerCase();
+			pm = pm.toLowerCase();
+			for (int i=0; i<days.length; ++i) {
+				days[i] = days[i].toLowerCase();
+			}
+			for (int i=0; i<months.length; ++i) {
+				months[i] = months[i].toLowerCase();
+			}
+		}
+		
+		final int color1 = preferences.getInt(BobClockD3Configure.HOURS_COLOUR_KEY, 0x97bdbdbd);
+		final int color2 = preferences.getInt(BobClockD3Configure.MINUTES_COLOUR_KEY, 0xcccf6f40);
+		
 		final int fontSize = (int)(13 * density);
 		
 		final Calendar calendar = Calendar.getInstance();
@@ -104,9 +166,24 @@ public class BobClockD3 extends AppWidgetProvider {
         paint.setTextSize(fontSize);
         paint.setTextAlign(Align.LEFT);
         
-        Bitmap hourBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.digitshours);
-        Bitmap minuteBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.digitsminutes);
-		
+        Bitmap hourBitmap = null;
+        try {
+        	FileInputStream fis = context.openFileInput(BobClockD3Configure.HOURS_FILE);
+        	hourBitmap = BitmapFactory.decodeStream(fis);
+        	fis.close();
+        } catch (Exception e) {
+        	hourBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.digits);
+        }
+
+        Bitmap minuteBitmap = null;
+        try {
+        	FileInputStream fis = context.openFileInput(BobClockD3Configure.MINUTES_FILE);
+        	minuteBitmap = BitmapFactory.decodeStream(fis);
+        	fis.close();
+        } catch (Exception e) {
+        	minuteBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.digits);
+        }
+        
         Bitmap bitmap = Bitmap.createBitmap((int)(width * density), (int)(height * density), Bitmap.Config.ARGB_8888);
 	    Canvas canvas = new Canvas(bitmap);
 		

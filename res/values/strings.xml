@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">BobClockD3</string>
-    <string name="am">am</string>
-    <string name="pm">pm</string>
+    <string name="am">AM</string>
+    <string name="pm">PM</string>
+    
+    <string name="hours_title">Hours</string>
+    <string name="minutes_title">Minutes</string>
+    <string name="hours_summary">Select the colour for the hours</string>
+    <string name="minutes_summary">Select the colour for the minutes</string>
 </resources>
