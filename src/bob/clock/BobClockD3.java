@@ -56,7 +56,10 @@ public class BobClockD3 extends AppWidgetProvider {
 		remoteViews.setImageViewBitmap(R.id.clock_view, builtClock);
 		boolean launchClock = preferences.getBoolean("launchclock", false);
 		if (launchClock) {
-			remoteViews.setOnClickPendingIntent(R.id.clock_view, createPendingIntent(context));
+			PendingIntent pendingIntent = createPendingIntent(context);
+			if (pendingIntent != null) {
+				remoteViews.setOnClickPendingIntent(R.id.clock_view, pendingIntent);
+			}
 		}
 		
 		ComponentName widget = new ComponentName(context, BobClockD3.class);
@@ -71,12 +74,13 @@ public class BobClockD3 extends AppWidgetProvider {
 	static private PendingIntent createPendingIntent(final Context context) {
 		PackageManager packageManager = context.getPackageManager();
 	    Intent alarmClockIntent = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
-
+	    
 	    String clockImpls[][] = {
 	            {"HTC Alarm Clock", "com.htc.android.worldclock", "com.htc.android.worldclock.WorldClockTabControl" },
-	            {"Standar Alarm Clock", "com.android.deskclock", "com.android.deskclock.AlarmClock"},
+	            {"Standard Alarm Clock", "com.android.deskclock", "com.android.deskclock.AlarmClock"},
 	            {"Froyo Nexus Alarm Clock", "com.google.android.deskclock", "com.android.deskclock.DeskClock"},
-	            {"Moto Blur Alarm Clock", "com.motorola.blur.alarmclock",  "com.motorola.blur.alarmclock.AlarmClock"}
+	            {"Moto Blur Alarm Clock", "com.motorola.blur.alarmclock",  "com.motorola.blur.alarmclock.AlarmClock"},
+	            {"Samsung Galaxy Alarm Clock", "com.sec.android.app.clockpackage", "com.sec.android.app.clockpackage.ClockPackage"}
 	    };
 
 	    boolean foundClockImpl = false;
