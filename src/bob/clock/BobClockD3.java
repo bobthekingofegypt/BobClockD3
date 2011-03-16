@@ -1,7 +1,10 @@
 package bob.clock;
 
 import java.io.FileInputStream;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.StringTokenizer;
 
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
@@ -24,6 +27,9 @@ import android.widget.RemoteViews;
 
 public class BobClockD3 extends AppWidgetProvider {
 
+	private final static String DATE_FORMAT_DEFAULT = "1";
+	private final static String DATE_FORMAT_ALTERNATIVE = "2";
+	
 	@Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
 		context.startService(new Intent(context, BobClockD3Service.class));
@@ -107,38 +113,44 @@ public class BobClockD3 extends AppWidgetProvider {
 	}
 	
 	private static Bitmap buildClock(final SharedPreferences preferences, final Context context) {
+		final SimpleDateFormat dateFormatter = new SimpleDateFormat("EEEEEE~|~MMMMM~|~dd~|~a");
 		final DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
 		final float density = displayMetrics.density;
 		
 		final boolean mode24 = preferences.getBoolean("mode24", false);
 		final boolean lowercase = preferences.getBoolean("lowercase", false);
 		
-		final String[] days = context.getResources().getStringArray(R.array.days);
-		final String[] months = context.getResources().getStringArray(R.array.months);
-		String am = context.getResources().getString(R.string.am);
-		String pm = context.getResources().getString(R.string.pm);
+		final Calendar calendar = Calendar.getInstance();
+		final Date date = calendar.getTime();
+		final String formattedDateString = dateFormatter.format(date);
+		StringTokenizer stringTokeniser = new StringTokenizer(formattedDateString, "~|~");
+		String dayString = stringTokeniser.nextToken();
+		String monthString = stringTokeniser.nextToken();
+		String dayOfMonthString = stringTokeniser.nextToken();
+		String ampmString = stringTokeniser.nextToken();
+		
+		final String dateLayout = preferences.getString("datelayout", DATE_FORMAT_DEFAULT);
+		String dateString = null;
+		if (dateLayout.equals(DATE_FORMAT_DEFAULT)) {
+			dateString = monthString + ". " + dayOfMonthString;
+		} else {
+			dateString = dayOfMonthString + ". " +monthString;
+		}
 		
 		if (lowercase) {
-			am = am.toLowerCase();
-			pm = pm.toLowerCase();
-			for (int i=0; i<days.length; ++i) {
-				days[i] = days[i].toLowerCase();
-			}
-			for (int i=0; i<months.length; ++i) {
-				months[i] = months[i].toLowerCase();
-			}
+			ampmString = ampmString.toLowerCase();
+			dayString = dayString.toLowerCase();
+			dateString = dateString.toLowerCase();
+		} else {
+			ampmString = ampmString.toUpperCase();
+			dayString = dayString.toUpperCase();
+			dateString = dateString.toUpperCase();
 		}
 		
 		final int color1 = preferences.getInt(BobClockD3Configure.HOURS_COLOUR_KEY, 0x97bdbdbd);
 		final int color2 = preferences.getInt(BobClockD3Configure.MINUTES_COLOUR_KEY, 0xcccf6f40);
 		
 		final int fontSize = (int)(13 * density);
-		
-		final Calendar calendar = Calendar.getInstance();
-		final int ampm = calendar.get(Calendar.AM_PM);
-		final int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
-		final int monthOfYear = calendar.get(Calendar.MONTH);
-		final int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
 		final int minute = calendar.get(Calendar.MINUTE);
 		
 		int hourDigitOne = 0;
@@ -193,7 +205,7 @@ public class BobClockD3 extends AppWidgetProvider {
 		
         paint.setColor(color1);
         if (!mode24) {
-			canvas.drawText((ampm == Calendar.AM) ? am : pm, leftPadding + (int)(5 * density), fontSize, paint);
+			canvas.drawText(ampmString, leftPadding + (int)(5 * density), fontSize, paint);
         }
 		
 		Rect source = new Rect();
@@ -225,8 +237,8 @@ public class BobClockD3 extends AppWidgetProvider {
 					  (int)(numberHeight + topPadding + (int)(90 * density)));
 		canvas.drawBitmap(minuteBitmap, source, dest, paint);
 		
-		canvas.drawText(days[dayOfWeek], leftPadding + (int)(9 * density), topPadding + (int)(235 * density), paint);
-		canvas.drawText(months[monthOfYear] + ". " + dayOfMonth, leftPadding + (int)(9 * density), topPadding + (int)(251 * density), paint);
+		canvas.drawText(dayString, leftPadding + (int)(9 * density), topPadding + (int)(235 * density), paint);
+		canvas.drawText(dateString, leftPadding + (int)(9 * density), topPadding + (int)(251 * density), paint);
 		
         paint.setColor(color2);
 		canvas.drawLine(leftPadding + (int)(5 * density), topPadding + (int)(225 * density), leftPadding + (int)(5 * density), (int)(253 * density) + topPadding, paint);

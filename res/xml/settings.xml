@@ -19,6 +19,14 @@
                 android:key="lowercase"
                 android:title="Lowercase"
                 android:summary="Show date in lowercase" />
+        <ListPreference
+                        android:title="Date layout"
+                        android:summary="Select layout for date"
+                        android:key="datelayout"
+                        android:defaultValue="1"
+                        android:entries="@array/dateformats"
+                        android:entryValues="@array/dateformatvalues"
+                        android:dialogTitle="Date layout" />
     </PreferenceCategory>
     
     <PreferenceCategory android:title="Clock Mode">

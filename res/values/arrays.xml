@@ -25,4 +25,14 @@
         <item>NOVEMBER</item>
         <item>DECEMBER</item>
     </string-array>
+    
+    <string-array name="dateformats">
+        <item>March. 16</item>
+        <item>16. March</item>
+    </string-array>
+    
+    <string-array name="dateformatvalues">
+        <item>1</item>
+        <item>2</item>
+    </string-array>
 </resources>
