@@ -150,7 +150,8 @@ public class BobClockD3 extends AppWidgetProvider {
 		final int color1 = preferences.getInt(BobClockD3Configure.HOURS_COLOUR_KEY, 0x97bdbdbd);
 		final int color2 = preferences.getInt(BobClockD3Configure.MINUTES_COLOUR_KEY, 0xcccf6f40);
 		
-		final int fontSize = (int)(13 * density);
+		final int fontSizePreference = Integer.parseInt(preferences.getString("fontsize", "13"));
+		final int fontSize = (int)(fontSizePreference * density);
 		final int minute = calendar.get(Calendar.MINUTE);
 		
 		int hourDigitOne = 0;
@@ -207,41 +208,49 @@ public class BobClockD3 extends AppWidgetProvider {
         if (!mode24) {
 			canvas.drawText(ampmString, leftPadding + (int)(5 * density), fontSize, paint);
         }
+        
+        Rect rect = new Rect();
+        paint.getTextBounds(ampmString, 0, ampmString.length(), rect);
+        int ampmHeight = (int)((rect.height() + 2) * density);
 		
 		Rect source = new Rect();
 		setRectToNumber(source, hourDigitOne, numberWidth, numberHeight); 
 		Rect dest = new Rect(leftPadding, 
-							 topPadding + (int)(15 * density), 
+							 topPadding + ampmHeight, 
 							 leftPadding + numberWidth, 
-							 (int)numberHeight + topPadding + (int)(15 * density));
+							 (int)numberHeight + topPadding + ampmHeight);
 		canvas.drawBitmap(hourBitmap, source, dest, paint);
 		
 		setRectToNumber(source, hourDigitTwo, numberWidth, numberHeight); 
 		setRect(dest, leftPadding + numberWidth + numberGap, 
-						topPadding + (int)(15 * density), 
+						topPadding + ampmHeight, 
 						leftPadding + numberWidth + numberGap + numberWidth, 
-						(int)(numberHeight + (int)(15 * density)));
+						(int)(numberHeight +  ampmHeight));
 		canvas.drawBitmap(hourBitmap, source, dest, paint);
 		
 		setRectToNumber(source, minuteDigitOne, numberWidth, numberHeight);
 		setRect(dest, leftPadding,
-					  topPadding + (int)(90 * density),
+					  topPadding + ampmHeight + (int)(75 * density),
 					  leftPadding + numberWidth,
-					  (int) numberHeight + topPadding + (int)(90 * density));
+					  (int) numberHeight + topPadding + ampmHeight + (int)(75 * density));
 		canvas.drawBitmap(minuteBitmap, source, dest, paint);
 		
 		setRectToNumber(source, minuteDigitTwo, numberWidth, numberHeight);
 		setRect(dest, leftPadding + numberWidth + numberGap, 
-					  topPadding + (int)(90 * density), 
+					  topPadding + ampmHeight + (int)(75 * density), 
 					  leftPadding + numberWidth + numberGap + numberWidth, 
-					  (int)(numberHeight + topPadding + (int)(90 * density)));
+					  (int)(numberHeight + topPadding + ampmHeight + (int)(75 * density)));
 		canvas.drawBitmap(minuteBitmap, source, dest, paint);
 		
-		canvas.drawText(dayString, leftPadding + (int)(9 * density), topPadding + (int)(235 * density), paint);
-		canvas.drawText(dateString, leftPadding + (int)(9 * density), topPadding + (int)(251 * density), paint);
+		canvas.drawText(dayString, leftPadding + (int)(9 * density), topPadding + ampmHeight + (int)(220 * density), paint);
+		canvas.drawText(dateString, leftPadding + (int)(9 * density), topPadding + ampmHeight + ampmHeight + (int)(220 * density), paint);
 		
         paint.setColor(color2);
-		canvas.drawLine(leftPadding + (int)(5 * density), topPadding + (int)(225 * density), leftPadding + (int)(5 * density), (int)(253 * density) + topPadding, paint);
+		canvas.drawLine(leftPadding + (int)(5 * density), 
+						topPadding + ampmHeight + (int)(210 * density), 
+						leftPadding + (int)(5 * density), 
+						ampmHeight + ampmHeight + (int)(220 * density) + topPadding, 
+						paint);
 		
 		return bitmap;
 	}

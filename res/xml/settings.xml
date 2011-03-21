@@ -27,6 +27,14 @@
                         android:entries="@array/dateformats"
                         android:entryValues="@array/dateformatvalues"
                         android:dialogTitle="Date layout" />
+        <ListPreference
+                        android:title="Text Size"
+                        android:summary="Select date text size"
+                        android:key="fontsize"
+                        android:defaultValue="13"
+                        android:entries="@array/fontsizes"
+                        android:entryValues="@array/fontsizesvalues"
+                        android:dialogTitle="Font Size" />
     </PreferenceCategory>
     
     <PreferenceCategory android:title="Clock Mode">
