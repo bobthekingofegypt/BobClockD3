@@ -3,9 +3,6 @@
       package="bob.clock"
       android:versionCode="1"
       android:versionName="1.0">
-    
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />  
-    
     <application android:icon="@drawable/icon" android:label="@string/app_name"
              android:theme="@android:style/Theme.NoTitleBar">
         <activity android:name=".BobClockD3Configure" android:screenOrientation="portrait">
