@@ -27,8 +27,7 @@ public class BobClockD3Configure extends PreferenceActivity {
 	static final String HOURS_COLOUR_KEY = "hours";
 	static final String MINUTES_COLOUR_KEY = "minutes";
 	
-	protected int widgetId;
-	protected ProgressDialog dialog;
+	protected int widgetId; 
 	
 	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
@@ -55,8 +54,7 @@ public class BobClockD3Configure extends PreferenceActivity {
     }
 	
 	protected void generateImageStrips() {
-		dialog = ProgressDialog.show(this, "",
-			"Generating image strips ...", true);
+	 
 		new ColourStripTask().execute((Void[])null);
 	}
 	
@@ -92,39 +90,38 @@ public class BobClockD3Configure extends PreferenceActivity {
         }
 
         @Override
-        protected void onPostExecute(Void _void) {
-        	dialog.dismiss();
+        protected void onPostExecute(Void _void) { 
         	postResult();
         }
         
         private void createStrip(final String filename, final int colour) {
-    		Bitmap digitsBitmap = BitmapFactory.decodeResource(BobClockD3Configure.this.getResources(), R.drawable.digits);
-    		int[] pixels = new int[digitsBitmap.getWidth() * digitsBitmap.getHeight()];
-            digitsBitmap.getPixels(pixels, 0, digitsBitmap.getWidth(), 0, 0, digitsBitmap.getWidth(), digitsBitmap.getHeight());
-            
-            int colourRed = (colour & 255);
-            int colourGreen = (colour >> 8) & 255;
-            int colourBlue = (colour >> 16) & 255;
-    		double colourAlpha = ((colour >> 24) & 255) / 255.0;
-            
-            for (int i=0; i < pixels.length; ++i) {
-            	int p = (((pixels[i] >> 24) & 255) == 0 ? 0 : (int)(((pixels[i] >> 24) & 255) * colourAlpha)) << 24 | 
-            													(colourBlue << 16) | 
-            													(colourGreen << 8) | 
-            													(colourRed);
-            	pixels[i] = p;
-            }
-    		
-            Bitmap colouredBitmap = Bitmap.createBitmap(pixels, digitsBitmap.getWidth(), 
-            						digitsBitmap.getHeight(), Bitmap.Config.ARGB_8888);
-            
-            try {
-    	        FileOutputStream fos = openFileOutput(filename, Context.MODE_PRIVATE);
-                colouredBitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
-                fos.close();
-    	     } catch (Exception e) {
-                e.printStackTrace();
-    	     }
-    	}
+    	// immutable, can't pass it to Canvas so make 'out' bitmap
+			Bitmap digitsBitmap = BitmapFactory.decodeResource(
+					BobClockD3Configure.this.getResources(), R.drawable.digits);
+			Bitmap out = Bitmap.createBitmap(digitsBitmap.getWidth(),
+					digitsBitmap.getHeight(), Bitmap.Config.ARGB_8888);
+			Canvas c = new Canvas(out);
+			Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+			c.drawBitmap(
+					makeDst(digitsBitmap.getWidth(), digitsBitmap.getHeight(),
+							colour), 0, 0, p);
+			p.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
+			c.drawBitmap(digitsBitmap, 0, 0, p);
+			try {
+				FileOutputStream fos = openFileOutput(filename,
+						Context.MODE_PRIVATE);
+				out.compress(Bitmap.CompressFormat.PNG, 100, fos);
+				fos.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		Bitmap makeDst(int w, int h, int color) {
+			Bitmap bm = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+			Canvas c = new Canvas(bm);
+			c.drawColor(color);
+			return bm;
+		}
     }
 }
